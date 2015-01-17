@@ -37,7 +37,7 @@
 #define MOTOR_B_DIR HG7881_B_IB // Motor B Direction
  
 // the actual values for "fast" and "slow" depend on the motor
-#define PWM_SLOW 50  // arbitrary slow speed PWM duty cycle
+#define PWM_SLOW 100  // arbitrary slow speed PWM duty cycle
 #define PWM_FAST 200 // arbitrary fast speed PWM duty cycle
 #define DIR_DELAY 1000 // brief delay for abrupt motor changes
  
