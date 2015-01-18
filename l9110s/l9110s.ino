@@ -51,6 +51,13 @@
 #define PWM_FAST 250 // arbitrary fast speed PWM duty cycle
 #define DIR_DELAY 1000 // brief delay for abrupt motor changes
 #define TURN_DELAY 5000
+
+// ultrasonic wired
+#define trigPin 13
+#define echoPin 12
+#define led 11
+#define led2 10
+
  
 void setup()
 {
@@ -71,6 +78,10 @@ void setup()
   pinMode( MOTOR_D_PWM, OUTPUT );
   digitalWrite( MOTOR_D_DIR, LOW );
   digitalWrite( MOTOR_D_PWM, LOW );
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(led, OUTPUT);
+  pinMode(led2, OUTPUT);
 }
  
 void loop()
@@ -88,14 +99,16 @@ void loop()
   Serial.println( "7) Turn left" );
   Serial.println( "8) Turn right" );
   Serial.println( "-----------------------------" );
+  
+  byte c = 1;
   do
   {
-    byte c;
     // get the next character from the serial port
-    Serial.print( "?" );
-    while( !Serial.available() )
-      ; // LOOP...
-    c = Serial.read();
+    //Serial.print( "?" );
+    //while( !Serial.available() )
+      //; // LOOP...
+    //c = Serial.read();
+    c = ultrasonic();
     // execute the menu option based on the character recieved
     switch( c )
     {
@@ -269,5 +282,36 @@ void stopMotors() {
         digitalWrite( MOTOR_D_DIR, LOW );
         digitalWrite( MOTOR_D_PWM, LOW );
         
+}
+
+byte ultrasonic() {
+  delay(500);
+  long duration, distance;
+  digitalWrite(trigPin, LOW);  // Added this line
+  delayMicroseconds(2); // Added this line
+  digitalWrite(trigPin, HIGH);
+  //  delayMicroseconds(1000); - Removed this line
+  delayMicroseconds(10); // Added this line
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration/2) / 29.1;
+  if (distance < 8) {  // This is where the LED On/Off happens
+    digitalWrite(led,HIGH); // When the Red condition is met, the Green LED should turn off
+    digitalWrite(led2,LOW);
+    return (byte)7;
+  }
+  else {
+    digitalWrite(led,LOW);
+    digitalWrite(led2,HIGH);
+    return (byte)1;
+  }
+  /*if (distance >= 200 || distance <= 0){
+   Serial.println("Out of range");
+   }
+   else {
+   Serial.print(distance);
+   Serial.println(" cm");
+   }*/
+ 
 }
 /*EOF*/
