@@ -29,17 +29,28 @@
 #define HG7881_A_IB 2 // D2 --> Motor A Input B --> MOTOR A -
 #define HG7881_B_IA 5 // D5 --> Motor B Input A --> MOTOR B +
 #define HG7881_B_IB 4 // D4 --> Motor B Input B --> MOTOR B -
+#define HG7881_C_IA 9 // D8 --> Motor C Input A --> MOTOR A +
+#define HG7881_C_IB 8 // D9 --> Motor C Input B --> MOTOR A -
+#define HG7881_D_IA 6 // D7 --> Motor D Input A --> MOTOR B +
+#define HG7881_D_IB 7 // D6 --> Motor D Input B --> MOTOR B -
+
  
 // functional connections
 #define MOTOR_A_PWM HG7881_A_IA // Motor A PWM Speed
 #define MOTOR_A_DIR HG7881_A_IB // Motor A Direction
 #define MOTOR_B_PWM HG7881_B_IA // Motor B PWM Speed
 #define MOTOR_B_DIR HG7881_B_IB // Motor B Direction
+#define MOTOR_C_PWM HG7881_C_IA // Motor C PWM Speed
+#define MOTOR_C_DIR HG7881_C_IB // Motor C Direction
+#define MOTOR_D_PWM HG7881_D_IA // Motor D PWM Speed
+#define MOTOR_D_DIR HG7881_D_IB // Motor D Direction
+
  
 // the actual values for "fast" and "slow" depend on the motor
 #define PWM_SLOW 100  // arbitrary slow speed PWM duty cycle
-#define PWM_FAST 200 // arbitrary fast speed PWM duty cycle
+#define PWM_FAST 250 // arbitrary fast speed PWM duty cycle
 #define DIR_DELAY 1000 // brief delay for abrupt motor changes
+#define TURN_DELAY 5000
  
 void setup()
 {
@@ -52,6 +63,14 @@ void setup()
   pinMode( MOTOR_B_PWM, OUTPUT );
   digitalWrite( MOTOR_B_DIR, LOW );
   digitalWrite( MOTOR_B_PWM, LOW );
+  pinMode( MOTOR_C_DIR, OUTPUT );
+  pinMode( MOTOR_C_PWM, OUTPUT );
+  digitalWrite( MOTOR_C_DIR, LOW );
+  digitalWrite( MOTOR_C_PWM, LOW );
+  pinMode( MOTOR_D_DIR, OUTPUT );
+  pinMode( MOTOR_D_PWM, OUTPUT );
+  digitalWrite( MOTOR_D_DIR, LOW );
+  digitalWrite( MOTOR_D_PWM, LOW );
 }
  
 void loop()
@@ -66,6 +85,8 @@ void loop()
   Serial.println( "4) Reverse" );
   Serial.println( "5) Fast reverse" );
   Serial.println( "6) Hard stop (brake)" );
+  Serial.println( "7) Turn left" );
+  Serial.println( "8) Turn right" );
   Serial.println( "-----------------------------" );
   do
   {
@@ -81,26 +102,25 @@ void loop()
       case '1': // 1) Fast forward
         Serial.println( "Fast forward..." );
         // always stop motors briefly before abrupt changes
-        digitalWrite( MOTOR_A_DIR, LOW );
-        digitalWrite( MOTOR_A_PWM, LOW );
-        digitalWrite( MOTOR_B_DIR, LOW );
-        digitalWrite( MOTOR_B_PWM, LOW );
+        stopMotors();
         delay( DIR_DELAY );
         // set the motor speed and direction
         digitalWrite( MOTOR_A_DIR, HIGH ); // direction = forward
         analogWrite( MOTOR_A_PWM, 255-PWM_FAST ); // PWM speed = fast
         digitalWrite( MOTOR_B_DIR, HIGH ); // direction = forward
         analogWrite( MOTOR_B_PWM, 255-PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_C_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_C_PWM, 255-PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_D_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_D_PWM, 255-PWM_FAST ); // PWM speed = fast
+        
         isValidInput = true;
         break;      
          
       case '2': // 2) Forward      
         Serial.println( "Forward..." );
         // always stop motors briefly before abrupt changes
-        digitalWrite( MOTOR_A_DIR, LOW );
-        digitalWrite( MOTOR_A_PWM, LOW );
-        digitalWrite( MOTOR_B_DIR, LOW );
-        digitalWrite( MOTOR_B_PWM, LOW );
+        stopMotors();
         
         delay( DIR_DELAY );
         // set the motor speed and direction
@@ -108,6 +128,11 @@ void loop()
         analogWrite( MOTOR_A_PWM, 255-PWM_SLOW ); // PWM speed = slow
         digitalWrite( MOTOR_B_DIR, HIGH ); // direction = forward
         analogWrite( MOTOR_B_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_C_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_C_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_D_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_D_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        
         
         isValidInput = true;
         break;      
@@ -118,23 +143,29 @@ void loop()
         digitalWrite( MOTOR_A_PWM, LOW );
         digitalWrite( MOTOR_B_DIR, LOW );
         digitalWrite( MOTOR_B_PWM, LOW );
+        digitalWrite( MOTOR_C_DIR, LOW );
+        digitalWrite( MOTOR_C_PWM, LOW );
+        digitalWrite( MOTOR_D_DIR, LOW );
+        digitalWrite( MOTOR_D_PWM, LOW );
+        
         isValidInput = true;
         break;      
  
       case '4': // 4) Reverse
         Serial.println( "Fast forward..." );
         // always stop motors briefly before abrupt changes
-        digitalWrite( MOTOR_A_DIR, LOW );
-        digitalWrite( MOTOR_A_PWM, LOW );
-        digitalWrite( MOTOR_B_DIR, LOW );
-        digitalWrite( MOTOR_B_PWM, LOW );
-        
+        stopMotors();
         delay( DIR_DELAY );
         // set the motor speed and direction
         digitalWrite( MOTOR_A_DIR, LOW ); // direction = reverse
         analogWrite( MOTOR_A_PWM, PWM_SLOW ); // PWM speed = slow
         digitalWrite( MOTOR_B_DIR, LOW ); // direction = reverse
         analogWrite( MOTOR_B_PWM, PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_C_DIR, LOW ); // direction = reverse
+        analogWrite( MOTOR_C_PWM, PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_D_DIR, LOW ); // direction = reverse
+        analogWrite( MOTOR_D_PWM, PWM_SLOW ); // PWM speed = slow
+        
         
         isValidInput = true;
         break;      
@@ -142,17 +173,18 @@ void loop()
       case '5': // 5) Fast reverse
         Serial.println( "Fast forward..." );
         // always stop motors briefly before abrupt changes
-        digitalWrite( MOTOR_A_DIR, LOW );
-        digitalWrite( MOTOR_A_PWM, LOW );
-        digitalWrite( MOTOR_B_DIR, LOW );
-        digitalWrite( MOTOR_B_PWM, LOW );
-        
+        stopMotors();
         delay( DIR_DELAY );
         // set the motor speed and direction
         digitalWrite( MOTOR_A_DIR, LOW ); // direction = reverse      
         analogWrite( MOTOR_A_PWM, PWM_FAST ); // PWM speed = fast
         digitalWrite( MOTOR_B_DIR, LOW ); // direction = reverse      
         analogWrite( MOTOR_B_PWM, PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_C_DIR, LOW ); // direction = reverse      
+        analogWrite( MOTOR_C_PWM, PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_D_DIR, LOW ); // direction = reverse      
+        analogWrite( MOTOR_D_PWM, PWM_FAST ); // PWM speed = fast
+        
         isValidInput = true;
         break;
          
@@ -162,9 +194,60 @@ void loop()
         digitalWrite( MOTOR_A_PWM, HIGH );
         digitalWrite( MOTOR_B_DIR, HIGH );
         digitalWrite( MOTOR_B_PWM, HIGH );
+        digitalWrite( MOTOR_C_DIR, HIGH );
+        digitalWrite( MOTOR_C_PWM, HIGH );
+        digitalWrite( MOTOR_D_DIR, HIGH );
+        digitalWrite( MOTOR_D_PWM, HIGH );
+        
         isValidInput = true;
-        break;      
-         
+        break;
+        
+      case '7': // 7) Turn left      
+        Serial.println( "Turn left ..." );
+        // always stop motors briefly before abrupt changes
+        stopMotors();
+        
+        delay( DIR_DELAY );
+        // set the motor speed and direction
+        digitalWrite( MOTOR_A_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_A_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_B_DIR, LOW ); // direction = forward
+        analogWrite( MOTOR_B_PWM, PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_C_DIR, LOW ); // direction = forward
+        analogWrite( MOTOR_C_PWM, PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_D_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_D_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        
+        delay( TURN_DELAY ); 
+        
+        stopMotors();
+        
+        isValidInput = true;
+        break;
+     
+     case '8': // 7) Turn right      
+        Serial.println( "Turn rigt ..." );
+        // always stop motors briefly before abrupt changes
+        stopMotors();
+        
+        delay( DIR_DELAY );
+        // set the motor speed and direction
+        digitalWrite( MOTOR_A_DIR, LOW ); // direction = forward
+        analogWrite( MOTOR_A_PWM, PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_B_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_B_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_C_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_C_PWM, 255-PWM_SLOW ); // PWM speed = slow
+        digitalWrite( MOTOR_D_DIR, LOW ); // direction = forward
+        analogWrite( MOTOR_D_PWM, PWM_SLOW ); // PWM speed = slow
+        
+        delay( TURN_DELAY ); 
+        
+        stopMotors();        
+        
+        isValidInput = true;
+        break;
+        
       default:
         // wrong character! display the menu again!
         isValidInput = false;
@@ -173,5 +256,18 @@ void loop()
   } while( isValidInput == true );
  
   // repeat the main loop and redraw the menu...
+}
+
+void stopMotors() {
+    // always stop motors briefly before abrupt changes
+        digitalWrite( MOTOR_A_DIR, LOW );
+        digitalWrite( MOTOR_A_PWM, LOW );
+        digitalWrite( MOTOR_B_DIR, LOW );
+        digitalWrite( MOTOR_B_PWM, LOW );
+        digitalWrite( MOTOR_C_DIR, LOW );
+        digitalWrite( MOTOR_C_PWM, LOW );
+        digitalWrite( MOTOR_D_DIR, LOW );
+        digitalWrite( MOTOR_D_PWM, LOW );
+        
 }
 /*EOF*/
