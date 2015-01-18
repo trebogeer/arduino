@@ -47,10 +47,10 @@
 
  
 // the actual values for "fast" and "slow" depend on the motor
-#define PWM_SLOW 100  // arbitrary slow speed PWM duty cycle
+#define PWM_SLOW 150  // arbitrary slow speed PWM duty cycle
 #define PWM_FAST 250 // arbitrary fast speed PWM duty cycle
 #define DIR_DELAY 1000 // brief delay for abrupt motor changes
-#define TURN_DELAY 5000
+#define TURN_DELAY 3000
 
 // ultrasonic wired
 #define trigPin 13
@@ -83,36 +83,23 @@ void setup()
   pinMode(led, OUTPUT);
   pinMode(led2, OUTPUT);
 }
+
+int state = 0;
  
 void loop()
 {
-  boolean isValidInput;
-  // draw a menu on the serial port
-  Serial.println( "-----------------------------" );
-  Serial.println( "MENU:" );
-  Serial.println( "1) Fast forward" );
-  Serial.println( "2) Forward" );
-  Serial.println( "3) Soft stop (coast)" );
-  Serial.println( "4) Reverse" );
-  Serial.println( "5) Fast reverse" );
-  Serial.println( "6) Hard stop (brake)" );
-  Serial.println( "7) Turn left" );
-  Serial.println( "8) Turn right" );
-  Serial.println( "-----------------------------" );
+  byte c = ultrasonic();
   
-  byte c = 1;
-  do
-  {
-    // get the next character from the serial port
-    //Serial.print( "?" );
-    //while( !Serial.available() )
-      //; // LOOP...
-    //c = Serial.read();
+  do {
+    delay( DIR_DELAY );
     c = ultrasonic();
+  } while (state == c);
+  state = c;
+  
     // execute the menu option based on the character recieved
     switch( c )
     {
-      case '1': // 1) Fast forward
+      case 1: // 1) Fast forward
         Serial.println( "Fast forward..." );
         // always stop motors briefly before abrupt changes
         stopMotors();
@@ -127,10 +114,9 @@ void loop()
         digitalWrite( MOTOR_D_DIR, HIGH ); // direction = forward
         analogWrite( MOTOR_D_PWM, 255-PWM_FAST ); // PWM speed = fast
         
-        isValidInput = true;
         break;      
          
-      case '2': // 2) Forward      
+      case 2: // 2) Forward      
         Serial.println( "Forward..." );
         // always stop motors briefly before abrupt changes
         stopMotors();
@@ -147,10 +133,9 @@ void loop()
         analogWrite( MOTOR_D_PWM, 255-PWM_SLOW ); // PWM speed = slow
         
         
-        isValidInput = true;
         break;      
          
-      case '3': // 3) Soft stop (preferred)
+      case 3: // 3) Soft stop (preferred)
         Serial.println( "Soft stop (coast)..." );
         digitalWrite( MOTOR_A_DIR, LOW );
         digitalWrite( MOTOR_A_PWM, LOW );
@@ -161,10 +146,9 @@ void loop()
         digitalWrite( MOTOR_D_DIR, LOW );
         digitalWrite( MOTOR_D_PWM, LOW );
         
-        isValidInput = true;
         break;      
  
-      case '4': // 4) Reverse
+      case 4: // 4) Reverse
         Serial.println( "Fast forward..." );
         // always stop motors briefly before abrupt changes
         stopMotors();
@@ -180,10 +164,9 @@ void loop()
         analogWrite( MOTOR_D_PWM, PWM_SLOW ); // PWM speed = slow
         
         
-        isValidInput = true;
         break;      
          
-      case '5': // 5) Fast reverse
+      case 5: // 5) Fast reverse
         Serial.println( "Fast forward..." );
         // always stop motors briefly before abrupt changes
         stopMotors();
@@ -198,10 +181,9 @@ void loop()
         digitalWrite( MOTOR_D_DIR, LOW ); // direction = reverse      
         analogWrite( MOTOR_D_PWM, PWM_FAST ); // PWM speed = fast
         
-        isValidInput = true;
         break;
          
-      case '6': // 6) Hard stop (use with caution)
+      case 6: // 6) Hard stop (use with caution)
         Serial.println( "Hard stop (brake)..." );
         digitalWrite( MOTOR_A_DIR, HIGH );
         digitalWrite( MOTOR_A_PWM, HIGH );
@@ -212,10 +194,9 @@ void loop()
         digitalWrite( MOTOR_D_DIR, HIGH );
         digitalWrite( MOTOR_D_PWM, HIGH );
         
-        isValidInput = true;
         break;
         
-      case '7': // 7) Turn left      
+      case 7: // 7) Turn left      
         Serial.println( "Turn left ..." );
         // always stop motors briefly before abrupt changes
         stopMotors();
@@ -235,10 +216,9 @@ void loop()
         
         stopMotors();
         
-        isValidInput = true;
         break;
      
-     case '8': // 7) Turn right      
+     case 8: // 7) Turn right      
         Serial.println( "Turn rigt ..." );
         // always stop motors briefly before abrupt changes
         stopMotors();
@@ -258,15 +238,13 @@ void loop()
         
         stopMotors();        
         
-        isValidInput = true;
         break;
         
       default:
-        // wrong character! display the menu again!
-        isValidInput = false;
+        Serial.print("invalid");
         break;
     }
-  } while( isValidInput == true );
+  
  
   // repeat the main loop and redraw the menu...
 }
@@ -285,7 +263,7 @@ void stopMotors() {
 }
 
 byte ultrasonic() {
-  delay(500);
+  //delay(500);
   long duration, distance;
   digitalWrite(trigPin, LOW);  // Added this line
   delayMicroseconds(2); // Added this line
@@ -295,7 +273,8 @@ byte ultrasonic() {
   digitalWrite(trigPin, LOW);
   duration = pulseIn(echoPin, HIGH);
   distance = (duration/2) / 29.1;
-  if (distance < 8) {  // This is where the LED On/Off happens
+  Serial.println(distance);
+  if (distance < 15 && distance > 0) {  // This is where the LED On/Off happens
     digitalWrite(led,HIGH); // When the Red condition is met, the Green LED should turn off
     digitalWrite(led2,LOW);
     return (byte)7;
