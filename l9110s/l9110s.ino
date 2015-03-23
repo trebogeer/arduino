@@ -194,7 +194,7 @@ int ultrasonicPing() {
   }else if(distance >= 15 && distance <= 30) {
     digitalWrite(LED0,HIGH);
     digitalWrite(LED1,LOW);
-    return 7;
+    return random(2) == 0?7:8;
   } else {
     digitalWrite(LED0,LOW);
     digitalWrite(LED1,HIGH);
